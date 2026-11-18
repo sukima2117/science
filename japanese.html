@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="『みきのたからもの』の紹介文と友達の感想を、4枚のスライドで見る国語の授業用ページです。">
+  <title>みきのたからもの｜しょうかい文を読み合おう</title>
+  <style>
+    :root { color-scheme: light; --ink: #243744; --muted: #687985; --line: #dce5eb; --accent: #236a87; --accent-light: #eaf4f9; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body { color: var(--ink); background: #f1f5f8; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; overflow: hidden; overscroll-behavior: none; }
+    button { font: inherit; -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, .viewer:focus-visible { outline: 3px solid #dc9330; outline-offset: 3px; }
+    button { touch-action: manipulation; }
+    .app { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 100%; height: 100vh; height: 100dvh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: max(12px, env(safe-area-inset-top)) 24px 12px; background: #fff; border-bottom: 1px solid var(--line); }
+    .heading { min-width: 0; display: flex; align-items: center; gap: 12px; }
+    .subject { flex: none; padding: 5px 8px; border: 1px solid #b9d6e5; border-radius: 7px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+    h1 { margin: 0; font-size: clamp(16px, 1.7vw, 22px); font-weight: 700; letter-spacing: .025em; }
+    .subtitle { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .tools { display: flex; align-items: center; gap: 14px; flex: none; }
+    .counter { min-width: 46px; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; text-align: center; }
+    .counter strong { color: var(--ink); font-size: 20px; }
+    .button { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 42px; padding: 9px 14px; color: var(--ink); background: #fff; border: 1px solid #cbd9e3; border-radius: 10px; cursor: pointer; white-space: nowrap; font-size: 14px; font-weight: 600; }
+    .button:hover:not(:disabled) { background: var(--accent-light); border-color: #8ab6ce; }
+    .button:active:not(:disabled) { background: #dcecf5; }
+    .button:disabled { opacity: .35; cursor: default; }
+    .button svg { flex: none; width: 19px; height: 19px; }
+    .canvas { min-width: 0; min-height: 0; padding: 14px 20px; }
+    .viewer { position: relative; display: grid; place-items: center; margin: 0; width: 100%; height: 100%; min-height: 0; background: #fff; border: 1px solid #e1e8ee; border-radius: 12px; overflow: hidden; touch-action: pan-y pinch-zoom; }
+    .slide-image { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: center; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    .error { position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; padding: 24px; text-align: center; background: #fff; }
+    .error[hidden] { display: none; }
+    .error p { margin: 0; line-height: 1.8; }
+    .error .detail { color: var(--muted); font-size: 14px; }
+    .bottom { padding: 11px 24px max(10px, env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line); }
+    .navigation { display: flex; justify-content: center; align-items: center; gap: 18px; max-width: 1000px; margin: 0 auto; }
+    .previous, .next { min-width: 86px; }
+    .steps { display: flex; justify-content: center; gap: 7px; min-width: 0; }
+    .step { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 8px 12px; background: #fff; border: 1px solid transparent; border-radius: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; cursor: pointer; }
+    .step:hover { background: #f2f6f9; }
+    .step[aria-current="step"] { color: var(--accent); background: var(--accent-light); border-color: #afd0e1; font-weight: 700; }
+    .step-number { display: grid; place-items: center; width: 21px; height: 21px; border: 1px solid #cad8e0; border-radius: 50%; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .step[aria-current="step"] .step-number { color: white; background: var(--accent); border-color: var(--accent); }
+    .hint { margin: 8px 0 0; color: var(--muted); text-align: center; font-size: 11px; line-height: 1.5; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    body.presentation .viewer, .viewer:fullscreen, .viewer:-webkit-full-screen { position: fixed; z-index: 1000; inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; border-radius: 0; outline: none; background: #fff; cursor: zoom-out; }
+    body.presentation .topbar, body.presentation .bottom { visibility: hidden; }
+    body.presentation .canvas { padding: 0; }
+    @media (max-width: 760px) {
+      .topbar { padding-right: 14px; padding-left: 14px; gap: 10px; }
+      .canvas { padding: 9px; }
+      .bottom { padding-right: 10px; padding-left: 10px; }
+      .navigation { gap: 7px; }
+      .steps { gap: 3px; }
+      .step { padding: 7px 8px; }
+      .step-label { display: none; }
+      .previous, .next { min-width: 72px; padding-right: 9px; padding-left: 9px; }
+      .hint { font-size: 10px; }
+    }
+    @media (max-width: 430px) {
+      .heading { gap: 8px; }
+      .subject { padding: 5px; font-size: 10px; }
+      .subtitle { max-width: 190px; font-size: 10px; }
+      .tools { gap: 6px; }
+      .fullscreen-label { display: none; }
+      .fullscreen { width: 42px; padding: 8px; }
+      .counter { min-width: 39px; font-size: 12px; }
+      .counter strong { font-size: 18px; }
+      .step { min-width: 33px; padding: 6px; }
+      .step-number { width: 20px; height: 20px; }
+      .navigation { gap: 5px; }
+    }
+    @media (max-height: 520px) and (orientation: landscape) {
+      .topbar { padding-top: 6px; padding-bottom: 6px; }
+      .subtitle, .hint { display: none; }
+      .button, .step { min-height: 34px; padding-top: 5px; padding-bottom: 5px; }
+      .canvas { padding: 5px 10px; }
+      .bottom { padding-top: 5px; padding-bottom: max(5px, env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="heading">
+        <span class="subject">国語</span>
+        <div><h1>みきのたからもの</h1><p class="subtitle" id="slide-title">紹介文</p></div>
+      </div>
+      <div class="tools">
+        <span class="counter" aria-label="全4枚のうち1枚目" id="counter"><strong id="current-number">1</strong> / 4</span>
+        <button class="button fullscreen" id="fullscreen" type="button" title="全画面表示（Fキー）" aria-label="全画面表示" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg>
+          <span class="fullscreen-label">全画面</span>
+        </button>
+      </div>
+    </header>
+    <main class="canvas">
+      <figure class="viewer" id="viewer" tabindex="0" role="region" aria-roledescription="スライド" aria-label="1枚目、紹介文">
+        <img class="slide-image" id="slide-image" src="pict-jp/01-introduction.png" alt="紹介文。わたしは、みきがリボンをわたすところがすきです。さいごまで見おくろうとする、みきのやさしさがつたわるからです。" width="1672" height="941" draggable="false" fetchpriority="high">
+        <div class="error" id="image-error" role="alert" hidden><p>画像を読み込めませんでした。</p><p class="detail">pict-jp フォルダを japanese.html と同じ場所に置いてください。</p></div>
+      </figure>
+    </main>
+    <footer class="bottom">
+      <div class="navigation">
+        <button class="button previous" id="previous" type="button" disabled aria-label="前のスライドへ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>前へ
+        </button>
+        <nav class="steps" aria-label="スライドを選ぶ">
+          <button class="step" type="button" data-slide="0" aria-current="step" aria-label="1枚目、紹介文"><span class="step-number">1</span><span class="step-label">紹介文</span></button>
+          <button class="step" type="button" data-slide="1" aria-label="2枚目、女の子の感想"><span class="step-number">2</span><span class="step-label">女の子の感想</span></button>
+          <button class="step" type="button" data-slide="2" aria-label="3枚目、男の子の感想"><span class="step-number">3</span><span class="step-label">男の子の感想</span></button>
+          <button class="step" type="button" data-slide="3" aria-label="4枚目、2人の感想"><span class="step-number">4</span><span class="step-label">２人の感想</span></button>
+        </nav>
+        <button class="button next" id="next" type="button" aria-label="次のスライドへ">次へ
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+      <p class="hint">← → キー・スワイプで切り替え　／　F キーで全画面　／　全画面中は画面をタップすると戻ります</p>
+    </footer>
+  </div>
+  <p class="sr-only" id="announcement" aria-live="polite" aria-atomic="true"></p>
+  <noscript><p style="position:fixed;inset:20px;z-index:2000;padding:24px;background:#fff;line-height:2">スライドを切り替えるには、ブラウザーの JavaScript を有効にしてください。</p></noscript>
+  <script>
+    (() => {
+      'use strict';
+      const slides = [
+        {
+          src: 'pict-jp/01-introduction.png', title: '紹介文',
+          alt: '紹介文。わたしは、みきがリボンをわたすところがすきです。さいごまで見おくろうとする、みきのやさしさがつたわるからです。'
+        },
+        {
+          src: 'pict-jp/02-girl-comment.png', title: '女の子の感想',
+          alt: '女の子の感想。私も、さいごまで見おくろうとするみきが、やさしいと思いました。〇〇より。'
+        },
+        {
+          src: 'pict-jp/03-boy-comment.png', title: '男の子の感想',
+          alt: '男の子の感想。なるほど。ぼくはリボンをつけるくふうがすごいと思っていました。さいごまで見おくろうとする、みきのやさしさもあるのですね。〇〇より。'
+        },
+        {
+          src: 'pict-jp/04-both-comments.png', title: '２人の感想',
+          alt: '2人の感想を並べた画像。右は女の子の「私も」の感想、左は男の子の「なるほど」の感想です。'
+        }
+      ];
+      const viewer = document.getElementById('viewer');
+      const image = document.getElementById('slide-image');
+      const error = document.getElementById('image-error');
+      const previous = document.getElementById('previous');
+      const next = document.getElementById('next');
+      const fullscreenButton = document.getElementById('fullscreen');
+      const steps = [...document.querySelectorAll('[data-slide]')];
+      let current = 0;
+      let presentation = false;
+      let pointerStart = null;
+
+      function hashIndex() {
+        const match = location.hash.match(/^#(?:slide-)?([1-4])$/);
+        return match ? Number(match[1]) - 1 : 0;
+      }
+      function show(index, syncHash = true) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        const slide = slides[current];
+        error.hidden = true;
+        image.alt = slide.alt;
+        if (!image.getAttribute('src').endsWith(slide.src)) image.src = slide.src;
+        document.getElementById('slide-title').textContent = slide.title;
+        document.getElementById('current-number').textContent = String(current + 1);
+        document.getElementById('counter').setAttribute('aria-label', `全4枚のうち${current + 1}枚目`);
+        viewer.setAttribute('aria-label', `${current + 1}枚目、${slide.title}`);
+        document.getElementById('announcement').textContent = `${current + 1} / 4、${slide.title}`;
+        previous.disabled = current === 0;
+        next.disabled = current === slides.length - 1;
+        steps.forEach((button, index) => {
+          if (index === current) button.setAttribute('aria-current', 'step');
+          else button.removeAttribute('aria-current');
+        });
+        if (syncHash) {
+          try { history.replaceState(null, '', `#slide-${current + 1}`); }
+          catch (_) { /* file:// でも表示と操作はそのまま続ける */ }
+        }
+      }
+      function move(amount) { show(current + amount); }
+      function fullscreenElement() { return document.fullscreenElement || document.webkitFullscreenElement; }
+      function setPresentation(active) {
+        presentation = active;
+        document.body.classList.toggle('presentation', active);
+        fullscreenButton.setAttribute('aria-pressed', String(active));
+      }
+      async function enterPresentation() {
+        setPresentation(true);
+        const request = viewer.requestFullscreen || viewer.webkitRequestFullscreen;
+        if (request) {
+          try { await request.call(viewer); }
+          catch (_) { /* 全画面APIに未対応でも、ページ内の画像のみ表示を使う */ }
+        }
+        viewer.focus({ preventScroll: true });
+      }
+      async function leavePresentation() {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (fullscreenElement() && exit) {
+          try { await exit.call(document); } catch (_) { /* ページ内の通常表示へ戻す */ }
+        }
+        setPresentation(false);
+        fullscreenButton.focus({ preventScroll: true });
+      }
+      function togglePresentation() {
+        if (presentation || fullscreenElement()) leavePresentation();
+        else enterPresentation();
+      }
+      function reflectFullscreen() {
+        setPresentation(Boolean(fullscreenElement()));
+      }
+
+      previous.addEventListener('click', () => move(-1));
+      next.addEventListener('click', () => move(1));
+      steps.forEach(button => button.addEventListener('click', () => show(Number(button.dataset.slide))));
+      fullscreenButton.addEventListener('click', togglePresentation);
+      document.addEventListener('fullscreenchange', reflectFullscreen);
+      document.addEventListener('webkitfullscreenchange', reflectFullscreen);
+      window.addEventListener('hashchange', () => show(hashIndex(), false));
+      image.addEventListener('error', () => { error.hidden = false; });
+      image.addEventListener('load', () => { error.hidden = true; });
+      document.addEventListener('keydown', event => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+        const interactive = event.target.closest('button, a');
+        switch (event.key) {
+          case 'ArrowRight': case 'PageDown': event.preventDefault(); move(1); break;
+          case 'ArrowLeft': case 'PageUp': event.preventDefault(); move(-1); break;
+          case ' ': if (!interactive) { event.preventDefault(); move(event.shiftKey ? -1 : 1); } break;
+          case 'Home': event.preventDefault(); show(0); break;
+          case 'End': event.preventDefault(); show(slides.length - 1); break;
+          case 'f': case 'F': event.preventDefault(); togglePresentation(); break;
+          case 'Escape': if (presentation) { event.preventDefault(); leavePresentation(); } break;
+        }
+      });
+      viewer.addEventListener('pointerdown', event => {
+        if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+        pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        if (viewer.setPointerCapture) viewer.setPointerCapture(event.pointerId);
+      });
+      viewer.addEventListener('pointercancel', () => { pointerStart = null; });
+      viewer.addEventListener('pointerup', event => {
+        if (!pointerStart || pointerStart.id !== event.pointerId) return;
+        const dx = event.clientX - pointerStart.x;
+        const dy = event.clientY - pointerStart.y;
+        pointerStart = null;
+        if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy) * 1.35) {
+          move(dx < 0 ? 1 : -1);
+        } else if (presentation && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+          leavePresentation();
+        }
+      });
+      slides.slice(1).forEach(slide => { const preload = new Image(); preload.src = slide.src; });
+      show(hashIndex());
+      if (image.complete && image.naturalWidth === 0) error.hidden = false;
+    })();
+  </script>
+</body>
+</html>
